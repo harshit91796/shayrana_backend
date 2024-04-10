@@ -1,0 +1,20 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:icalendar-ruby
+CALSCALE:GREGORIAN
+METHOD:REQUEST
+BEGIN:VEVENT
+DTSTAMP:20230828T074143Z
+UID:8c80270e-28f3-43f7-806b-f5b636b419bb
+DTSTART:20230829T083000Z
+DTEND:20230829T091500Z
+DESCRIPTION:You are invited for discussion regarding your job application -
+  GIS Developer\, Ms Teams url - https://quantela-team.freshteam.com/assess
+ ments/QrygXNgLSnKh
+ORGANIZER;ROLE=NON-PARTICIPANT;CN=Sai Singh Pasari:mailto:saisingh.pasari@q
+ uantela.com
+SUMMARY:GIS Developer Interview - Ms Teams Interview
+ATTENDEE;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;ROLE=REQ-PARTICIPANT;CN=Harshit Ra
+ jput:mailto:rajputharshit48@gmail.com
+END:VEVENT
+END:VCALENDAR
