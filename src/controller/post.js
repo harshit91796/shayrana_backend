@@ -1,19 +1,66 @@
-const Post = require('../model/Post');
+
 const User = require('../model/User')
 const { findById } = require('../model/User');
+const { createClient } = require('@supabase/supabase-js')
+const dotenv = require('dotenv')
+const multer = require('multer')
+const fs = require('fs')
 
+dotenv.config()
+
+const supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_ANON_KEY
+  );
+
+  const storage = multer.memoryStorage();
+  const upload = multer({ storage: storage });
+  
 
 //create post 
-  
-async function createPost(req,res){
-    const newPost = new Post(req.body)
+
+async function createPost(req, res) {
     try {
-        const savedPost = await newPost.save();
-        res.status(200).send(savedPost)
-    } catch (error) {
-        res.status(500).send({msg : error.message})
-    }
-}
+    
+    console.log(req.body,req.file)
+    
+    upload.single('file')(req, res, async (err) => {
+      if (err) {
+        return res.status(500).send({ msg: err.message });
+      }
+  
+      const uniqueName = `audio-${Date.now()}.mp3`; // Adjust extension for audio
+  
+      const { data, error } = await supabase.storage
+        .from('shayarana')
+        .upload(uniqueName, req.file.buffer, {
+          contentType: 'audio/mpeg', // Specify audio content type
+          cacheControl: 'max-age=3600', 
+        });
+  
+      if (error) {
+        return res.status(500).send({ msg: error.message });
+      }
+  
+      console.log('Supabase upload successful:', data);
+      const audioUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/${data.fullPath}`;
+      console.log('urlll', audioUrl);
+  
+      newPost.audioUrl = audioUrl;
+  
+      console.log('New post data before saving:', newPost); // Log for debugging
+  
+     
+    });
+   
+        const savedPost = await 
+        res.status(200).send(savedPost);
+      } catch (error) {
+        console.error('Error saving post:', error); // Log the error
+        res.status(500).send({ msg: 'Error creating post' });
+      }
+  }
+  
 
 
 //update post
@@ -47,6 +94,8 @@ async function deletePost(req, res) {
         res.status(500).send({ msg: error.message });
     }
 }
+
+
 
 //get post
 

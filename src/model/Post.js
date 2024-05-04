@@ -3,15 +3,22 @@ const mongoose = require("mongoose");
 const PostSchema = new mongoose.Schema(
   {
     userId: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
       required: true,
     },
     desc: {
       type: String,
-      max: 500,
+      maxlength: 500, // Changed from 'max' to 'maxlength'
     },
     img: {
       type: String,
+    },
+    title: {
+      type: String,
+    },
+    audioUrl: {
+      type: String,
+      required: true,
     },
     likes: {
       type: Array,
@@ -21,6 +28,6 @@ const PostSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-Post = mongoose.model("Post", PostSchema);
- 
-module.exports = Post;
+const postModel = mongoose.model("Post", PostSchema);
+
+module.exports = postModel;
