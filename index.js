@@ -15,6 +15,8 @@ app.use(express.json());
 app.use(helmet());
 app.use(morgan("common"))
 
+app.use(express.urlencoded({ extended: false }));
+
 app.use("/images", express.static(path.join(__dirname, "public/images/person")));
 
 const storage = multer.diskStorage({

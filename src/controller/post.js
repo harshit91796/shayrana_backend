@@ -1,4 +1,4 @@
-
+const Post = require('../model/Post');
 const User = require('../model/User')
 const { findById } = require('../model/User');
 const { createClient } = require('@supabase/supabase-js')
@@ -14,53 +14,88 @@ const supabase = createClient(
   );
 
   const storage = multer.memoryStorage();
-  const upload = multer({ storage: storage });
+  const upload = multer({ storage: storage }).fields([
+      { name: 'audio', maxCount: 1 },
+      { name: 'image', maxCount: 1 }
+  ]);
   
+  async function createPost(req, res) {
+      upload(req, res, async (err) => {
+          if (err) {
+              console.error('Error uploading files:', err);
+              return res.status(500).send({ msg: 'Error uploading files' });
+          }
+  
+          try {
+              const { post } = req.body;
+              if (!post) {
+                  throw new Error('Post data is missing');
+              }
+  
+              const parsedPost = JSON.parse(post);
+              console.log('Parsed post:', parsedPost);
+  
+              if (!req.files || Object.keys(req.files).length === 0) {
+                  return res.status(400).send({ msg: 'Files are required.' });
+              }
+  
+              const audioFile = req.files.audio ? req.files.audio[0] : null;
+              const imageFile = req.files.image ? req.files.image[0] : null;
+  
+              if (!audioFile || !imageFile) {
+                  return res.status(400).send({ msg: 'Both image and audio files are required.' });
+              }
+  
+              console.log('Supabase storage config before:', req.files.audio[0].buffer);
+  
+              const uniqueAudioName = `audio-${Date.now()}.mp3`; // Adjust extension for audio
+              const uniqueImageName = `image-${Date.now()}.jpg`;
+  
+              console.log('Supabase storage config:');
+  
+              const audioUploadPromise = await supabase.storage.from('shaayri').upload(uniqueAudioName, audioFile.buffer, {
+                  contentType: 'audio/mpeg',
+                  cacheControl: 'max-age=3600',
+                  upsert: false
+              });
+  
+              console.log('Supabase audio upload successful:', audioUploadPromise);
 
-//create post 
-
-async function createPost(req, res) {
-    try {
-    
-    console.log(req.body,req.file)
-    
-    upload.single('file')(req, res, async (err) => {
-      if (err) {
-        return res.status(500).send({ msg: err.message });
-      }
+              console.log('Supabase storage config before:', req.files.image[0].buffer);
   
-      const uniqueName = `audio-${Date.now()}.mp3`; // Adjust extension for audio
+              const imageUploadPromise = await supabase.storage.from('shaayri').upload(uniqueImageName, imageFile.buffer, {
+                  contentType: 'image/jpeg',
+                  cacheControl: 'max-age=3600', 
+                  upsert: false
+              }); 
   
-      const { data, error } = await supabase.storage
-        .from('shayarana')
-        .upload(uniqueName, req.file.buffer, {
-          contentType: 'audio/mpeg', // Specify audio content type
-          cacheControl: 'max-age=3600', 
-        });
+              console.log('Supabase image upload successful:', imageUploadPromise);
   
-      if (error) {
-        return res.status(500).send({ msg: error.message });
-      }
+              const audioUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/shaayri/${audioUploadPromise.data.path}`;
+              const imgUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/shaayri/${imageUploadPromise.data.path}`;
   
-      console.log('Supabase upload successful:', data);
-      const audioUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/${data.fullPath}`;
-      console.log('urlll', audioUrl);
+              console.log('audioUrl:', audioUrl);
+              console.log('imageUrl:', imgUrl);
   
-      newPost.audioUrl = audioUrl;
+              const newPost = new Post({
+                  ...parsedPost,
+                  audioUrl: audioUrl,
+                  imgUrl: imgUrl
+              });
   
-      console.log('New post data before saving:', newPost); // Log for debugging
+              console.log('New post data before saving:', newPost);
   
-     
-    });
-   
-        const savedPost = await 
-        res.status(200).send(savedPost);
-      } catch (error) {
-        console.error('Error saving post:', error); // Log the error
-        res.status(500).send({ msg: 'Error creating post' });
-      }
+              const savedPost = await newPost.save();
+              res.status(200).send(savedPost);
+          } catch (error) {
+              console.error('Error saving post:', error);
+              res.status(500).send({ msg: 'Error creating post' });
+          }
+      });
   }
   
+
+
 
 
 //update post

@@ -10,7 +10,7 @@ const PostSchema = new mongoose.Schema(
       type: String,
       maxlength: 500, // Changed from 'max' to 'maxlength'
     },
-    img: {
+    imgUrl: {
       type: String,
     },
     title: {
@@ -28,6 +28,6 @@ const PostSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const postModel = mongoose.model("Post", PostSchema);
+const Post = mongoose.model("Post", PostSchema);
 
-module.exports = postModel;
+module.exports = Post;
